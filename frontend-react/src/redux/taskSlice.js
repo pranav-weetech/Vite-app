@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-const BASE_URL = `${import.meta.env.VITE_BASE_URL}/api/todo`;
+const BASE_URL = `${import.meta.env.VITE_API_BASE}/todo`;
 
 // ========================================
 // Thunks
