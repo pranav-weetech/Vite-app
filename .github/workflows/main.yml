@@ -7,7 +7,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
       # Step 1: Checkout code
@@ -32,10 +32,7 @@ jobs:
 
       # Step 5: Deploy to Nginx server via SSH
       - name: Deploy to Nginx server
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: 192.168.1.22
-          username: pranav
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "frontend-react/dist/*"
-          target: "/var/www/app-dev"
+        run: |
+          sudo rm -rf /var/www/app-dev/*
+          sudo cp -r frontend-react/dist/* /var/www/app-dev/
+
