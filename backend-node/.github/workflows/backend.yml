@@ -1,0 +1,43 @@
+name: Backend CI/CD
+
+on:
+  push:
+    branches:
+      - master  # Trigger when you push to master
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      # Step 1: Checkout repo
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      # Step 3: Copy backend files to server
+      - name: Copy backend to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: 192.168.1.22
+          username: pranav
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "backend-node/*"
+          target: "/var/www/backend-node"
+
+      # Step 4: SSH into server and restart backend
+      - name: Restart backend on server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 192.168.1.22
+          username: pranav
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /var/www/backend-node
+            npm ci --omit=dev
+            nohup node index.js > backend.log 2>&1 &
