@@ -2,11 +2,16 @@ name: Frontend CI & Deploy (Vite -> Nginx)
 
 on:
   push:
-    branches: master
+    branches:
+      - master
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: frontend-react
 
     steps:
       - name: Checkout repository
@@ -28,13 +33,13 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: frontend-dist
-          path: dist
+          path: frontend-react/dist
 
       - name: Deploy dist folder to server
         uses: burnett01/rsync-deployments@v4
         with:
           switches: -avz --delete
-          path: dist/
+          path: frontend-react/dist/
           remote_path: /var/www/app-dev/
           remote_host: ${{ secrets.SERVER_HOST }}
           remote_user: ${{ secrets.SERVER_USER }}
