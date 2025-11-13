@@ -7,7 +7,7 @@ import todoRoutes from "./routes/todoRoutes.js";
 dotenv.config();
 
 // ===============================================
-// MongoDB Connection
+// 🧠 MongoDB Connection
 // ===============================================
 mongoose
   .connect(process.env.MONGO_URI)
@@ -19,23 +19,37 @@ mongoose
   });
 
 // ===============================================
-// Express App Setup
+// 🚀 Express App Setup
 // ===============================================
 const app = express();
-
 app.use(express.json());
 
-// ✅ Allow requests from frontend (Vite on port 5173)
+// ===============================================
+// 🧾 Logging Middleware  ✅ (PUT HERE — very top of middlewares)
+// ===============================================
+app.use((req, res, next) => {
+  console.log(`➡️ ${req.method} ${req.url}`);
+  next();
+});
+
+// ===============================================
+// ✅ CORS Configuration  ✅ (PUT RIGHT AFTER logging)
+// ===============================================
+const allowedOrigins = [
+  "http://localhost:5173", // Vite dev server
+  "http://localhost:81",   // Nginx reverse proxy
+];
+
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: allowedOrigins,
     methods: ["GET", "POST", "DELETE", "PUT"],
     credentials: true,
   })
 );
 
 // ===============================================
-// Routes
+// 📦 Routes
 // ===============================================
 app.get("/", (req, res) => {
   res.send("Backend is running ✅");
@@ -44,7 +58,7 @@ app.get("/", (req, res) => {
 app.use("/api/todo", todoRoutes);
 
 // ===============================================
-// Error Handling Middleware
+// ❗ Error Handling Middleware
 // ===============================================
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
@@ -58,7 +72,7 @@ app.use((err, req, res, next) => {
 });
 
 // ===============================================
-// Start Server
+// 🏁 Start Server
 // ===============================================
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

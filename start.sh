@@ -1,64 +1,68 @@
 #!/bin/bash
 
-# ===============================
-# Deployment Script for Todo App
-# ===============================
+# ======================================
+# 🚀 Full Stack Dev Start Script (Node + React + Nginx)
+# ======================================
 
-set -e
-
-FRONTEND_DIR="$HOME/Desktop/Workspace/Projects/frontend-react"
+# Project paths
 BACKEND_DIR="$HOME/Desktop/Workspace/Projects/backend-node"
-DEPLOY_DIR="/var/www/frontend-react"
+FRONTEND_DIR="$HOME/Desktop/Workspace/Projects/frontend-react"
+NGINX_WEB_DIR="/var/www/app-dev"
 
-echo "🔧 Killing existing processes on 5000 and 5173..."
-sudo fuser -k 5000/tcp || true
-sudo fuser -k 5173/tcp || true
+# ======================================
+# 🧹 Clean up old processes
+# ======================================
+echo "🧹 Cleaning old processes..."
 
-# ===============================
-# Start MongoDB
-# ===============================
-echo "🧩 Starting MongoDB..."
-sudo systemctl start mongod
+sudo fuser -k 5000/tcp >/dev/null 2>&1  # backend
+sudo fuser -k 5173/tcp >/dev/null 2>&1  # frontend
+
+sleep 1
+echo "✅ Old processes cleaned."
+
+# ======================================
+# 🚀 Start Backend
+# ======================================
+echo "🚀 Starting Backend..."
+cd "$BACKEND_DIR" || { echo "❌ Backend directory not found!"; exit 1; }
+npm install >/dev/null 2>&1
+npm start &   # run in background
+BACK_PID=$!
 sleep 3
+echo "✅ Backend running on http://localhost:5000 (PID: $BACK_PID)"
 
-# ===============================
-# FRONTEND SETUP
-# ===============================
-echo "📦 Building frontend..."
-cd "$FRONTEND_DIR"
-npm install
-npm run build
+# ======================================
+# 🌐 Build Frontend & Deploy to Nginx
+# ======================================
+echo "🌐 Building Frontend..."
+cd "$FRONTEND_DIR" || { echo "❌ Frontend directory not found!"; exit 1; }
+npm install >/dev/null 2>&1
+npm run dev >/dev/null 2>&1
 
-echo "📂 Copying dist files to Nginx directory..."
-sudo mkdir -p "$DEPLOY_DIR"
-sudo cp -r dist/* "$DEPLOY_DIR/"
+echo "📦 Deploying build to Nginx..."
+sudo rm -rf "$NGINX_WEB_DIR"
+sudo mkdir -p "$NGINX_WEB_DIR"
+sudo cp -r dist/* "$NGINX_WEB_DIR/"
+sudo chown -R www-data:www-data "$NGINX_WEB_DIR"
+sudo chmod -R 755 "$NGINX_WEB_DIR"
 
-# Run frontend locally for development (on 5173)
-echo "🚀 Starting Vite dev server (localhost:5173)..."
-nohup npm run dev -- --host > vite.log 2>&1 &
-
-# ===============================
-# BACKEND SETUP
-# ===============================
-echo "⚙️ Starting backend..."
-cd "$BACKEND_DIR"
-npm install
-nohup node index.js > backend.log 2>&1 &
-sleep 3
-
-# Verify backend
-if lsof -i:5000 >/dev/null 2>&1; then
-  echo "✅ Backend is running on port 5000!"
-else
-  echo "❌ Backend failed to start. Check backend.log"
-fi
-
-# ===============================
-# NGINX RELOAD
-# ===============================
+# Reload Nginx
 echo "🔁 Reloading Nginx..."
-sudo nginx -t && sudo systemctl restart nginx
+sudo nginx -t && sudo systemctl reload nginx
+echo "✅ Nginx reloaded successfully!"
 
-echo "✅ Deployment completed!"
-echo "🌐 Local Dev: http://localhost:5173"
-echo "🌐 Production: http://localhost:81"
+# ======================================
+# 🧭 Summary
+# ======================================
+echo ""
+echo "🎯 All services started successfully!"
+echo "-------------------------------------"
+echo "Frontend (dev) → http://localhost:5173"
+echo "Backend (API)  → http://localhost:5000"
+echo "Nginx (prod)   → http://localhost:81"
+echo "-------------------------------------"
+echo "🟢 Use 'ps -ef | grep node' to check running processes"
+echo "🛑 To stop them manually, run:"
+echo "    sudo fuser -k 5173/tcp"
+echo "    sudo fuser -k 5000/tcp"
+echo "-------------------------------------"

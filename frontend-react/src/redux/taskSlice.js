@@ -1,7 +1,10 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-const BASE_URL = `${import.meta.env.VITE_API_BASE}/todo`;
+const dev = window.location.port === "5173"; // running locally with vite dev server
+const BASE_URL = dev
+  ? "http://localhost:5000/api/todo"  // local backend Flask
+  : "/api/todo"; 
 
 // ========================================
 // Thunks
