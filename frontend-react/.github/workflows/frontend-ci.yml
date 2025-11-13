@@ -1,0 +1,42 @@
+name: frontend-ci
+
+on:
+  push:
+    paths:
+      - 'frontend-react/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: frontend-react
+
+    steps:
+      # 🧩 Step 1: Checkout your repository code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # ⚙️ Step 2: Setup Node.js version
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      # 📦 Step 3: Install dependencies
+      - name: Install dependencies
+        run: npm ci
+
+      # 🧪 Step 4: Run build
+      - name: Build frontend
+        run: npm run build
+
+      # 📤 Step 6: Upload production build as artifact (optional)
+      - name: Upload production build
+        uses: actions/upload-artifact@v4
+        with:
+          name: vite-frontend-build
+          path: frontend-react/dist
+
