@@ -27,7 +27,7 @@ jobs:
           host: 192.168.1.22
           username: pranav
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "backend-node/*"
+          source: "./*"
           target: "/var/www/backend-node"
 
       # Step 4: SSH into server and restart backend
