@@ -1,0 +1,43 @@
+name: Backend PROD CI/CD
+
+on:
+  push:
+    branches:
+      - main  # Trigger when you push to main (prod)
+      
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      # Step 1: Checkout repo
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      # Step 3: Copy backend files to PROD server
+      - name: Copy backend to server (PROD)
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: 192.168.1.22
+          username: pranav
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "./*"
+          target: "/var/www/backend-prod"
+
+      # Step 4: SSH into server and restart backend PROD
+      - name: Restart backend on server (PROD)
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 192.168.1.22
+          username: pranav
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /var/www/backend-prod
+            npm ci --omit=dev
+            nohup node index.js > backend.log 2>&1 &

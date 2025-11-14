@@ -1,0 +1,37 @@
+name: Frontend PROD CI/CD
+
+on:
+  push:
+    branches:
+      - main  # 🚀 Trigger when you push to main (prod) branch
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      # Step 1: Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        working-directory: frontend-react
+        run: npm ci
+
+      # Step 4: Build project
+      - name: Build project
+        working-directory: frontend-react
+        run: npm run build
+
+      # Step 5: Deploy to Nginx server
+      - name: Deploy to Nginx server
+        run: |
+          sudo rm -rf /var/www/app-prod/*
+          sudo cp -r frontend-react/dist/* /var/www/app-prod/
