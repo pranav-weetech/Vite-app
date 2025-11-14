@@ -3,7 +3,7 @@ name: Frontend CI/CD
 on:
   push:
     branches:
-      - master  # 🚀 Trigger when you push to master branch
+      - dev  # 🚀 Trigger when you push to master branch
 
 jobs:
   deploy:
