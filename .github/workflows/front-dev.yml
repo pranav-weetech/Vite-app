@@ -46,7 +46,6 @@ jobs:
         run: |
           echo "🚀 Deploying frontend to DEV..."
           sudo rm -rf /var/www/app-dev/*
-          # prefer dist or build, fallback to copying build tree
           if [ -d frontend-react/dist ]; then
             sudo cp -r frontend-react/dist/* /var/www/app-dev/
           elif [ -d frontend-react/build ]; then
