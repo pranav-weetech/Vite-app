@@ -11,50 +11,44 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      # Step 1: Checkout code
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Step 2: Set up Node.js
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
 
-      # Step 3: Install dependencies
       - name: Install dependencies
         working-directory: frontend-react
         run: npm ci
 
-      # Step 4: Build project
       - name: Build project
         working-directory: frontend-react
         run: npm run build
 
-      # ============================================
-      # 🚀 DEV Deployment (ONLY when pushing to dev)
-      # ============================================
-      - name: Deploy to DEV
+      # ======================
+      # 🚀 Deploy to DEV
+      # ======================
+      - name: Deploy to DEV (port 81)
         if: github.ref == 'refs/heads/dev'
         run: |
           echo "Deploying to DEV..."
-          sudo rm -rf /var/www/app-dev/*
-          sudo cp -r frontend-react/dist/* /var/www/app-dev/
-          echo "DEV deployment complete."
+          rm -rf /var/www/app-dev/*
+          cp -r frontend-react/dist/* /var/www/app-dev/
 
-      # ==============================================
-      # 🚀 PROD Deployment (ONLY when pushing to prod)
-      # ==============================================
-      - name: Deploy to PROD
+      # ======================
+      # 🚀 Deploy to PROD
+      # ======================
+      - name: Deploy to PROD (port 80)
         if: github.ref == 'refs/heads/prod'
         run: |
           echo "Deploying to PROD..."
-          sudo rm -rf /var/www/app-prod/*
-          sudo cp -r frontend-react/dist/* /var/www/app-prod/
-          echo "PROD deployment complete."
+          rm -rf /var/www/app-prod/*
+          cp -r frontend-react/dist/* /var/www/app-prod/
 
-      # Step 6: Restart Nginx (shared for dev & prod)
       - name: Restart Nginx
+        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/prod'
         run: |
-          sudo nginx -t
-          sudo systemctl restart nginx
+          echo "Restarting nginx..."
+          systemctl restart nginx
