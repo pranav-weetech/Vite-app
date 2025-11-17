@@ -5,6 +5,8 @@ on:
     branches:
       - dev
       - main
+    paths:
+      - 'backend-node/**'   # trigger only if backend files change
 
 jobs:
   deploy:
@@ -27,18 +29,12 @@ jobs:
         if: github.ref == 'refs/heads/dev'
         run: |
           echo "Deploying DEV..."
-          # Optional: clean previous deployment if needed
-          # rm -rf /var/www/backend-dev/*
-          # Copy all backend files (or just the ones needed)
           cp -r backend-node/* /var/www/backend-dev/
-          # Restart backend service
           systemctl restart backend-dev
 
       - name: Deploy to PROD
-        if: github.ref == 'refs/heads/prod'
+        if: github.ref == 'refs/heads/main'
         run: |
           echo "Deploying PROD..."
-          # Optional: clean previous deployment if needed
-          # rm -rf /var/www/backend-prod/*
           cp -r backend-node/* /var/www/backend-prod/
           systemctl restart backend-prod
