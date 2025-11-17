@@ -49,30 +49,3 @@ npm run dev
 echo "✅ Frontend build completed!"
 echo ""
 
-# ======================================
-# 📦 Deploy Build to Nginx
-# ======================================
-echo "📦 Deploying to Nginx..."
-
-sudo rm -rf "$NGINX_WEB_DIR"/*
-sudo mkdir -p "$NGINX_WEB_DIR"
-
-sudo cp -r dist/* "$NGINX_WEB_DIR/"
-sudo chown -R www-data:www-data "$NGINX_WEB_DIR"
-sudo chmod -R 755 "$NGINX_WEB_DIR"
-
-echo "✅ Build deployed to $NGINX_WEB_DIR"
-echo ""
-
-# ======================================
-# 🔁 Restart Nginx
-# ======================================
-echo "🔁 Restarting Nginx..."
-sudo nginx -t
-sudo systemctl restart nginx
-
-echo "✅ Nginx restarted successfully!"
-echo ""
-echo "🎉 All services running successfully!"
-echo "Frontend:  http://localhost:81"
-echo "Backend:   http://localhost:5000"

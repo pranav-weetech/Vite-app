@@ -5,7 +5,7 @@ import cors from "cors";
 import todoRoutes from "./routes/todoRoutes.js";
 
 dotenv.config();
-
+console.log("DEBUG MONGO_URI =", process.env.MONGO_URI);  
 // ===============================================
 // 🧠 MongoDB Connection
 // ===============================================
