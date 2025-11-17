@@ -27,28 +27,21 @@ jobs:
         working-directory: frontend-react
         run: npm run build
 
-      # ======================
-      # 🚀 Deploy to DEV
-      # ======================
-      - name: Deploy to DEV (port 81)
+      - name: Deploy to DEV
         if: github.ref == 'refs/heads/dev'
         run: |
-          echo "Deploying to DEV..."
+          echo "Deploying DEV..."
           rm -rf /var/www/app-dev/*
           cp -r frontend-react/dist/* /var/www/app-dev/
 
-      # ======================
-      # 🚀 Deploy to PROD
-      # ======================
-      - name: Deploy to PROD (port 80)
+      - name: Deploy to PROD
         if: github.ref == 'refs/heads/prod'
         run: |
-          echo "Deploying to PROD..."
+          echo "Deploying PROD..."
           rm -rf /var/www/app-prod/*
           cp -r frontend-react/dist/* /var/www/app-prod/
 
-      - name: Restart Nginx
+      - name: Restart nginx
         if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/prod'
         run: |
-          echo "Restarting nginx..."
           systemctl restart nginx
