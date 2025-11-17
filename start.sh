@@ -27,25 +27,22 @@ echo "✅ Old processes cleaned."
 echo ""
 
 # ======================================
-# 🚀 Start Backend
-# ======================================
-echo "🚀 Starting Backend..."
-cd "$BACKEND_DIR" || { echo "❌ Backend directory not found!"; exit 1; }
-npm install
-node index.js &
-BACK_PID=$!
-sleep 3
-echo "✅ Backend running on http://localhost:5000 (PID: $BACK_PID)"
-echo ""
-
-# ======================================
 # 🌐 Build Frontend
 # ======================================
 echo "🌐 Building Frontend..."
 cd "$FRONTEND_DIR" || { echo "❌ Frontend directory not found!"; exit 1; }
 npm install
 npm run build
-npm run dev
+npm run dev &
 echo "✅ Frontend build completed!"
 echo ""
 
+# ======================================
+# 🚀 Start Backend
+# ======================================
+echo "🚀 Starting Backend..."
+cd "$BACKEND_DIR" || { echo "❌ Backend directory not found!"; exit 1; }
+npm install
+node index.js 
+echo "✅ Backend running on http://localhost:5000 (PID: $BACK_PID)"
+echo ""
