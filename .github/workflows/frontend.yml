@@ -31,17 +31,17 @@ jobs:
         if: github.ref == 'refs/heads/dev'
         run: |
           echo "Deploying DEV..."
-          rm -rf /var/www/app-dev/*
-          cp -r frontend-react/dist/* /var/www/app-dev/
+          sudo rm -rf /var/www/app-dev/*
+          sudo cp -r frontend-react/dist/* /var/www/app-dev/
 
       - name: Deploy to PROD
         if: github.ref == 'refs/heads/prod'
         run: |
           echo "Deploying PROD..."
-          rm -rf /var/www/app-prod/*
-          cp -r frontend-react/dist/* /var/www/app-prod/
+          sudo rm -rf /var/www/app-prod/*
+          sudo cp -r frontend-react/dist/* /var/www/app-prod/
 
       - name: Restart nginx
         if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/prod'
         run: |
-          systemctl restart nginx
+          sudo systemctl restart nginx
