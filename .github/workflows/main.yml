@@ -27,21 +27,35 @@ jobs:
         working-directory: frontend-react
         run: npm run build
 
+      # ==========================
+      # DEV DEPLOY (dev branch)
+      # ==========================
       - name: Deploy to DEV
         if: github.ref == 'refs/heads/dev'
         run: |
-          echo "Deploying DEV..."
-          rm -rf /var/www/app-dev/*
-          cp -r frontend-react/dist/* /var/www/app-dev/
+          echo "🚀 Deploying DEV..."
+          sudo rm -rf /var/www/app-dev/*
+          sudo cp -r frontend-react/dist/* /var/www/app-dev/
+          sudo chown -R www-data:www-data /var/www/app-dev
+          sudo chmod -R 755 /var/www/app-dev
 
+      # ==========================
+      # PROD DEPLOY (main branch)
+      # ==========================
       - name: Deploy to PROD
-        if: github.ref == 'refs/heads/prod'
+        if: github.ref == 'refs/heads/main'
         run: |
-          echo "Deploying PROD..."
-          rm -rf /var/www/app-prod/*
-          cp -r frontend-react/dist/* /var/www/app-prod/
+          echo "🚀 Deploying PROD..."
+          sudo rm -rf /var/www/app-prod/*
+          sudo cp -r frontend-react/dist/* /var/www/app-prod/
+          sudo chown -R www-data:www-data /var/www/app-prod
+          sudo chmod -R 755 /var/www/app-prod
 
+      # ==========================
+      # Restart Nginx
+      # ==========================
       - name: Restart nginx
-        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/prod'
+        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/main'
         run: |
-          systemctl restart nginx
+          sudo systemctl restart nginx
+          echo "✅ Nginx restarted!"
