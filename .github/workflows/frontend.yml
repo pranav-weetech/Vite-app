@@ -12,10 +12,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 18
 
@@ -34,17 +34,22 @@ jobs:
       - name: Deploy DEV frontend
         if: github.ref == 'refs/heads/dev'
         run: |
+          echo "Deploying to DEV..."
           sudo rm -rf /var/www/app-dev/*
           sudo cp -r frontend-react/dist/* /var/www/app-dev/
+          sudo nginx -t
           sudo systemctl restart nginx
 
       # PROD deploy
       - name: Deploy PROD frontend
         if: github.ref == 'refs/heads/main'
         run: |
+          echo "Deploying to PROD..."
           sudo rm -rf /var/www/app-prod/*
           sudo cp -r frontend-react/dist/* /var/www/app-prod/
+          sudo nginx -t
           sudo systemctl restart nginx
+
 
       # ==========================
       # BACKEND
@@ -53,8 +58,20 @@ jobs:
         working-directory: ./backend-node
         run: npm install
 
-      - name: Restart backend service
+      # DEV BACKEND START
+      - name: Restart DEV backend
+        if: github.ref == 'refs/heads/dev'
         run: |
-          pkill node || true
-          nohup node /home/ubuntu/Vite-app/backend-node/index.js > /home/ubuntu/backend.log 2>&1 &
-          echo "Backend restarted"
+          echo "Restarting DEV backend..."
+          pkill -f "node.*backend-node" || true
+          nohup node /home/ubuntu/Vite-app/backend-node/index.js \
+            > /home/ubuntu/backend-dev.log 2>&1 &
+
+      # PROD BACKEND START
+      - name: Restart PROD backend
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "Restarting PROD backend..."
+          pkill -f "node.*backend-node" || true
+          nohup node /home/ubuntu/Vite-app/backend-node/index.js \
+            > /home/ubuntu/backend-prod.log 2>&1 &
