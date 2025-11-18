@@ -14,6 +14,16 @@ jobs:
       - name: 🛎️ Checkout repository
         uses: actions/checkout@v3
 
+      # ==========================
+      # DEBUG: Check repo path
+      # ==========================
+      - name: 🧭 Print current directory
+        run: |
+          echo "Current directory:"
+          pwd
+          echo "List files here:"
+          ls -lah
+
       - name: 🔧 Setup Node.js
         uses: actions/setup-node@v3
         with:
@@ -23,12 +33,20 @@ jobs:
       # FRONTEND BUILD
       # ==========================
       - name: 📦 Install frontend dependencies
-        working-directory: ./frontend-react
-        run: npm install
+        working-directory: ./Vite-app/frontend-react
+        run: |
+          echo "Installing frontend dependencies in:"
+          pwd
+          ls -lah
+          npm install
 
       - name: 🏗️ Build frontend
-        working-directory: ./frontend-react
-        run: npm run build
+        working-directory: ./Vite-app/frontend-react
+        run: |
+          echo "Building frontend in:"
+          pwd
+          ls -lah
+          npm run build
 
       # ==========================
       # DEV FRONTEND DEPLOY (PORT 81)
@@ -37,8 +55,11 @@ jobs:
         if: github.ref == 'refs/heads/dev'
         run: |
           echo "Deploying frontend to DEV (port 81)"
+          echo "Current working directory:"
+          pwd
+          ls -lah
           sudo rm -rf /var/www/app-dev/*
-          sudo cp -r frontend-react/dist/* /var/www/app-dev/
+          sudo cp -r Vite-app/frontend-react/dist/* /var/www/app-dev/
           sudo nginx -s reload || sudo systemctl restart nginx
           echo "DEV frontend deployed!"
 
@@ -49,7 +70,10 @@ jobs:
         if: github.ref == 'refs/heads/main'
         run: |
           echo "Deploying frontend to PROD (port 80)"
+          echo "Current working directory:"
+          pwd
+          ls -lah
           sudo rm -rf /var/www/app-prod/*
-          sudo cp -r frontend-react/dist/* /var/www/app-prod/
+          sudo cp -r Vite-app/frontend-react/dist/* /var/www/app-prod/
           sudo nginx -s reload || sudo systemctl restart nginx
           echo "PROD frontend deployed!"
