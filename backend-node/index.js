@@ -52,7 +52,7 @@ app.use(
 // 📦 Routes
 // ===============================================
 app.get("/", (req, res) => {
-  res.send("Backend is running ✅");
+  res.send("BACKENDDD✅");
 });
 
 app.use("/api/todo", todoRoutes);
