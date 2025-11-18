@@ -14,14 +14,12 @@ jobs:
       - name: 🛎️ Checkout repository
         uses: actions/checkout@v3
 
-      # ==========================
-      # DEBUG: Check repo path
-      # ==========================
-      - name: 🧭 Print current directory
+      # Debug: show repo path
+      - name: 🧭 Debug: Current directory
         run: |
-          echo "Current directory:"
+          echo "Repository checked out at:"
           pwd
-          echo "List files here:"
+          echo "List files:"
           ls -lah
 
       - name: 🔧 Setup Node.js
@@ -29,51 +27,40 @@ jobs:
         with:
           node-version: 18
 
-      # ==========================
-      # FRONTEND BUILD
-      # ==========================
-      - name: 📦 Install frontend dependencies
-        working-directory: ./Vite-app/frontend-react
+      # Install dependencies & build Vite frontend
+      - name: 📦 Install dependencies
+        working-directory: frontend-react
         run: |
-          echo "Installing frontend dependencies in:"
-          pwd
+          echo "Installing frontend dependencies in $(pwd)/frontend-react"
           ls -lah
           npm install
 
       - name: 🏗️ Build frontend
-        working-directory: ./Vite-app/frontend-react
+        working-directory: frontend-react
         run: |
-          echo "Building frontend in:"
-          pwd
-          ls -lah
+          echo "Building frontend..."
           npm run build
+          echo "Frontend build done. Dist folder contents:"
+          ls -lah dist
 
-      # ==========================
-      # DEV FRONTEND DEPLOY (PORT 81)
-      # ==========================
+      # Deploy DEV frontend (port 81)
       - name: 🚀 Deploy DEV frontend
         if: github.ref == 'refs/heads/dev'
         run: |
           echo "Deploying frontend to DEV (port 81)"
-          echo "Current working directory:"
-          pwd
-          ls -lah
           sudo rm -rf /var/www/app-dev/*
-          sudo cp -r Vite-app/frontend-react/dist/* /var/www/app-dev/
+          sudo cp -r frontend-react/dist/* /var/www/app-dev/
+          echo "Reloading nginx..."
           sudo nginx -s reload || sudo systemctl restart nginx
           echo "DEV frontend deployed!"
 
-      # ==========================
-      # PROD FRONTEND DEPLOY (PORT 80)
-      # ==========================
+      # Deploy PROD frontend (port 80)
       - name: 🚀 Deploy PROD frontend
         if: github.ref == 'refs/heads/main'
         run: |
           echo "Deploying frontend to PROD (port 80)"
-          echo "Current working directory:"
-          pwd
-          ls -lah
           sudo rm -rf /var/www/app-prod/*
-          sudo cp -r Vite-app/frontend-react/dist/* /var/www/app-prod/
+          sudo cp -r frontend-react/dist/* /var/www/app-prod/
+          echo "Reloading nginx..."
           sudo nginx -s reload || sudo systemctl restart nginx
           echo "PROD frontend deployed!"
