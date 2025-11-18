@@ -1,4 +1,4 @@
-name: Full CI/CD
+name: Frontend CI/CD
 
 on:
   push:
@@ -7,71 +7,49 @@ on:
       - main
 
 jobs:
-  deploy:
+  frontend-deploy:
     runs-on: self-hosted
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: 🛎️ Checkout repository
+        uses: actions/checkout@v3
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v3
         with:
           node-version: 18
 
       # ==========================
-      # FRONTEND
+      # FRONTEND BUILD
       # ==========================
-      - name: Install frontend deps
+      - name: 📦 Install frontend dependencies
         working-directory: ./frontend-react
         run: npm install
 
-      - name: Build frontend
+      - name: 🏗️ Build frontend
         working-directory: ./frontend-react
         run: npm run build
 
-      # DEV deploy
-      - name: Deploy DEV frontend
+      # ==========================
+      # DEV FRONTEND DEPLOY (PORT 81)
+      # ==========================
+      - name: 🚀 Deploy DEV frontend
         if: github.ref == 'refs/heads/dev'
         run: |
-          echo "Deploying to DEV..."
+          echo "Deploying frontend to DEV (port 81)"
           sudo rm -rf /var/www/app-dev/*
           sudo cp -r frontend-react/dist/* /var/www/app-dev/
-          sudo nginx -t
-          sudo systemctl restart nginx
+          sudo nginx -s reload || sudo systemctl restart nginx
+          echo "DEV frontend deployed!"
 
-      # PROD deploy
-      - name: Deploy PROD frontend
+      # ==========================
+      # PROD FRONTEND DEPLOY (PORT 80)
+      # ==========================
+      - name: 🚀 Deploy PROD frontend
         if: github.ref == 'refs/heads/main'
         run: |
-          echo "Deploying to PROD..."
+          echo "Deploying frontend to PROD (port 80)"
           sudo rm -rf /var/www/app-prod/*
           sudo cp -r frontend-react/dist/* /var/www/app-prod/
-          sudo nginx -t
-          sudo systemctl restart nginx
-
-
-      # ==========================
-      # BACKEND
-      # ==========================
-      - name: Install backend deps
-        working-directory: ./backend-node
-        run: npm install
-
-      # DEV BACKEND START
-      - name: Restart DEV backend
-        if: github.ref == 'refs/heads/dev'
-        run: |
-          echo "Restarting DEV backend..."
-          pkill -f "node.*backend-node" || true
-          nohup node /home/ubuntu/Vite-app/backend-node/index.js \
-            > /home/ubuntu/backend-dev.log 2>&1 &
-
-      # PROD BACKEND START
-      - name: Restart PROD backend
-        if: github.ref == 'refs/heads/main'
-        run: |
-          echo "Restarting PROD backend..."
-          pkill -f "node.*backend-node" || true
-          nohup node /home/ubuntu/Vite-app/backend-node/index.js \
-            > /home/ubuntu/backend-prod.log 2>&1 &
+          sudo nginx -s reload || sudo systemctl restart nginx
+          echo "PROD frontend deployed!"

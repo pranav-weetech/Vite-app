@@ -5,6 +5,8 @@ on:
     branches:
       - dev
       - main
+    paths:
+      - 'backend-node/**'    # Only trigger if backend files change
 
 jobs:
   backend-deploy:
@@ -23,24 +25,26 @@ jobs:
         working-directory: ./backend-node
         run: npm install
 
-      # ===========================================
-      # DEV BACKEND DEPLOYMENT
-      # ===========================================
+      # ==============================
+      # DEV BACKEND DEPLOYMENT (PORT 5000 PROXY → NGINX 81)
+      # ==============================
       - name: 🚀 Restart Backend (DEV)
         if: github.ref == 'refs/heads/dev'
         run: |
           echo "Restarting backend for DEV..."
           pkill node || true
           nohup node /home/ubuntu/Vite-app/backend-node/index.js > /home/ubuntu/backend-dev.log 2>&1 &
+          sudo nginx -s reload || sudo systemctl restart nginx
           echo "DEV backend restarted!"
 
-      # ===========================================
-      # PROD BACKEND DEPLOYMENT
-      # ===========================================
+      # ==============================
+      # PROD BACKEND DEPLOYMENT (PORT 5000 PROXY → NGINX 80)
+      # ==============================
       - name: 🚀 Restart Backend (PROD)
         if: github.ref == 'refs/heads/main'
         run: |
           echo "Restarting backend for PROD..."
           pkill node || true
           nohup node /home/ubuntu/Vite-app/backend-node/index.js > /home/ubuntu/backend-prod.log 2>&1 &
+          sudo nginx -s reload || sudo systemctl restart nginx
           echo "PROD backend restarted!"
