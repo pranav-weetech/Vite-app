@@ -1,12 +1,10 @@
-name: Frontend CI/CD
+name: Full CI/CD
 
 on:
   push:
     branches:
       - dev
       - main
-    paths:
-      - 'frontend-react/**'   # trigger only if frontend files change
 
 jobs:
   deploy:
@@ -14,36 +12,49 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
         with:
           node-version: 18
 
-      - name: Install dependencies
-        working-directory: frontend-react
-        run: npm ci
+      # ==========================
+      # FRONTEND
+      # ==========================
+      - name: Install frontend deps
+        working-directory: ./frontend-react
+        run: npm install
 
-      - name: Build project
-        working-directory: frontend-react
+      - name: Build frontend
+        working-directory: ./frontend-react
         run: npm run build
 
-      - name: Deploy to DEV
+      # DEV deploy
+      - name: Deploy DEV frontend
         if: github.ref == 'refs/heads/dev'
         run: |
-          echo "Deploying DEV..."
           sudo rm -rf /var/www/app-dev/*
           sudo cp -r frontend-react/dist/* /var/www/app-dev/
+          sudo systemctl restart nginx
 
-      - name: Deploy to PROD
+      # PROD deploy
+      - name: Deploy PROD frontend
         if: github.ref == 'refs/heads/main'
         run: |
-          echo "Deploying PROD..."
           sudo rm -rf /var/www/app-prod/*
           sudo cp -r frontend-react/dist/* /var/www/app-prod/
-
-      - name: Restart nginx
-        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/main'
-        run: |
           sudo systemctl restart nginx
+
+      # ==========================
+      # BACKEND
+      # ==========================
+      - name: Install backend deps
+        working-directory: ./backend-node
+        run: npm install
+
+      - name: Restart backend service
+        run: |
+          pkill node || true
+          nohup node /home/ubuntu/Vite-app/backend-node/index.js > /home/ubuntu/backend.log 2>&1 &
+          echo "Backend restarted"

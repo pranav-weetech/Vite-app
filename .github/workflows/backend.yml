@@ -5,36 +5,42 @@ on:
     branches:
       - dev
       - main
-    paths:
-      - 'backend-node/**'   # trigger only if backend files change
 
 jobs:
-  deploy:
+  backend-deploy:
     runs-on: self-hosted
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: 🛎️ Checkout repository
+        uses: actions/checkout@v3
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v3
         with:
           node-version: 18
 
-      - name: Install dependencies
-        working-directory: backend-node
-        run: npm ci
+      - name: 📦 Install backend dependencies
+        working-directory: ./backend-node
+        run: npm install
 
-      - name: Deploy to DEV
+      # ===========================================
+      # DEV BACKEND DEPLOYMENT
+      # ===========================================
+      - name: 🚀 Restart Backend (DEV)
         if: github.ref == 'refs/heads/dev'
         run: |
-          echo "Deploying DEV..."
-          cp -r backend-node/* /var/www/backend-dev/
-          systemctl restart backend-dev
+          echo "Restarting backend for DEV..."
+          pkill node || true
+          nohup node /home/ubuntu/Vite-app/backend-node/index.js > /home/ubuntu/backend-dev.log 2>&1 &
+          echo "DEV backend restarted!"
 
-      - name: Deploy to PROD
+      # ===========================================
+      # PROD BACKEND DEPLOYMENT
+      # ===========================================
+      - name: 🚀 Restart Backend (PROD)
         if: github.ref == 'refs/heads/main'
         run: |
-          echo "Deploying PROD..."
-          cp -r backend-node/* /var/www/backend-prod/
-          systemctl restart backend-prod
+          echo "Restarting backend for PROD..."
+          pkill node || true
+          nohup node /home/ubuntu/Vite-app/backend-node/index.js > /home/ubuntu/backend-prod.log 2>&1 &
+          echo "PROD backend restarted!"
