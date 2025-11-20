@@ -1,4 +1,4 @@
-name: Frontend CI/CD
+name: Full CI/CD
 
 on:
   push:
@@ -7,60 +7,90 @@ on:
       - main
 
 jobs:
-  frontend-deploy:
+  deploy:
     runs-on: self-hosted
 
     steps:
       - name: 🛎️ Checkout repository
         uses: actions/checkout@v3
 
-      # Debug: show repo path
-      - name: 🧭 Current directory
-        run: |
-          echo "Repository checked out at:"
-          pwd
-          echo "List files:"
-          ls -lah
-
       - name: 🔧 Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18
 
-      # Install dependencies & build Vite frontend
-      - name: 📦 Install dependencies
-        working-directory: frontend-react
+      # =============================
+      # Detect branch and set paths
+      # =============================
+      - name: ⚙️ Set environment paths
         run: |
-          echo "Installing frontend dependencies in $(pwd)/frontend-react"
-          ls -lah
+          BRANCH=${GITHUB_REF##*/}
+          echo "Detected branch: $BRANCH"
+          if [ "$BRANCH" = "dev" ]; then
+            export FRONTEND_PATH="frontend-react"
+            export BACKEND_PATH="backend-node"
+            export DEPLOY_DIR="/var/www/app-dev"
+            export BACKEND_LOG="/var/www/backend-dev.log"
+            echo "DEV environment selected"
+          elif [ "$BRANCH" = "main" ]; then
+            export FRONTEND_PATH="frontend-react"
+            export BACKEND_PATH="backend-node"
+            export DEPLOY_DIR="/var/www/app-prod"
+            export BACKEND_LOG="/var/www/backend-prod.log"
+            echo "PROD environment selected"
+          else
+            echo "Branch not recognized, exiting..."
+            exit 1
+          fi
+          echo "Frontend folder: $FRONTEND_PATH"
+          echo "Backend folder: $BACKEND_PATH"
+          echo "Deploy folder: $DEPLOY_DIR"
+          echo "Backend log file: $BACKEND_LOG"
+
+      # =============================
+      # Frontend: Install & Build
+      # =============================
+      - name: 📦 Install frontend dependencies
+        run: |
+          echo "📂 Current directory: $(pwd)"
+          echo "➡️ Installing frontend dependencies..."
+          cd $FRONTEND_PATH || exit
+          echo "📂 Now in: $(pwd)"
           npm install
+          echo "✅ Frontend dependencies installed"
 
       - name: 🏗️ Build frontend
-        working-directory: frontend-react
         run: |
-          echo "Building frontend..."
+          echo "➡️ Building frontend..."
+          cd $FRONTEND_PATH || exit
           npm run build
-          echo "Frontend build done. Dist folder contents:"
+          echo "✅ Frontend build done. Dist folder contents:"
           ls -lah dist
 
-      # Deploy DEV frontend (port 81)
-      - name: 🚀 Deploy DEV frontend
-        if: github.ref == 'refs/heads/dev'
+      # =============================
+      # Deploy Frontend
+      # =============================
+      - name: 🚀 Deploy frontend
         run: |
-          echo "Deploying frontend to DEV (port 81)"
-          sudo rm -rf /var/www/app-dev/*
-          sudo cp -r frontend-react/dist/* /var/www/app-dev/
-          echo "Reloading nginx..."
-          sudo nginx -s reload || sudo systemctl restart nginx
-          echo "DEV frontend deployed!"
+          echo "➡️ Deploying frontend to $DEPLOY_DIR..."
+          sudo rm -rf $DEPLOY_DIR/*
+          sudo cp -r $FRONTEND_PATH/dist/* $DEPLOY_DIR/
+          echo "✅ Frontend deployed to $DEPLOY_DIR"
+          echo "➡️ Reloading Nginx..."
+          sudo systemctl reload nginx
+          echo "✅ Nginx reloaded"
 
-      # Deploy PROD frontend (port 80)
-      - name: 🚀 Deploy PROD frontend
-        if: github.ref == 'refs/heads/main'
+      # =============================
+      # Backend: Optional Deployment
+      # =============================
+      - name: 🚀 Deploy backend
         run: |
-          echo "Deploying frontend to PROD (port 80)"
-          sudo rm -rf /var/www/app-prod/*
-          sudo cp -r frontend-react/dist/* /var/www/app-prod/
-          echo "Reloading nginx..."
-          sudo nginx -s reload || sudo systemctl restart nginx
-          echo "PROD frontend deployed!"
+          echo "➡️ Deploying backend from $BACKEND_PATH..."
+          sudo fuser -k 5000/tcp 2>/dev/null || echo "No process running on 5000"
+          cd $BACKEND_PATH || exit
+          echo "📂 Now in backend folder: $(pwd)"
+          npm install
+          echo "➡️ Starting backend..."
+          nohup npm start > $BACKEND_LOG 2>&1 &
+          echo "✅ Backend started, logs: $BACKEND_LOG"
+
