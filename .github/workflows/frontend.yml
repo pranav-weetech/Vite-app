@@ -39,7 +39,7 @@ jobs:
         working-directory: frontend-react
         run: |
           echo "Building frontend..."
-          npm run build
+          npm run dev
           echo "Frontend build done. Dist folder contents:"
           ls -lah dist
 
