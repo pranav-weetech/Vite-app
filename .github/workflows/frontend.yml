@@ -34,26 +34,23 @@ jobs:
           echo "Detected branch: $BRANCH"
 
           if [ "$BRANCH" = "dev" ]; then
-            export FRONTEND_PATH="$GITHUB_WORKSPACE/frontend-react"
-            export BACKEND_PATH="$GITHUB_WORKSPACE/backend-node"
-            export DEPLOY_DIR="/var/www/app-dev"
-            export BACKEND_LOG="/var/www/backend-dev.log"
-            echo "✅ DEV environment selected (port 81)"
+            echo "DEV environment selected (port 81)"
+            echo "FRONTEND_PATH=$GITHUB_WORKSPACE/frontend-react" >> $GITHUB_ENV
+            echo "BACKEND_PATH=$GITHUB_WORKSPACE/backend-node" >> $GITHUB_ENV
+            echo "DEPLOY_DIR=/var/www/app-dev" >> $GITHUB_ENV
+            echo "BACKEND_LOG=/var/www/backend-dev.log" >> $GITHUB_ENV
           elif [ "$BRANCH" = "main" ]; then
-            export FRONTEND_PATH="$GITHUB_WORKSPACE/frontend-react"
-            export BACKEND_PATH="$GITHUB_WORKSPACE/backend-node"
-            export DEPLOY_DIR="/var/www/app-prod"
-            export BACKEND_LOG="/var/www/backend-prod.log"
-            echo "✅ PROD environment selected (port 80)"
+            echo "PROD environment selected (port 80)"
+            echo "FRONTEND_PATH=$GITHUB_WORKSPACE/frontend-react" >> $GITHUB_ENV
+            echo "BACKEND_PATH=$GITHUB_WORKSPACE/backend-node" >> $GITHUB_ENV
+            echo "DEPLOY_DIR=/var/www/app-prod" >> $GITHUB_ENV
+            echo "BACKEND_LOG=/var/www/backend-prod.log" >> $GITHUB_ENV
           else
             echo "❌ Branch not recognized, exiting..."
             exit 1
           fi
 
-          echo "Frontend folder: $FRONTEND_PATH"
-          echo "Backend folder: $BACKEND_PATH"
-          echo "Deploy folder: $DEPLOY_DIR"
-          echo "Backend log file: $BACKEND_LOG"
+          echo "✅ Environment variables set for later steps"
 
       # =============================
       # Frontend: Install dependencies
