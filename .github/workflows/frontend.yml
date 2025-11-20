@@ -11,9 +11,15 @@ jobs:
     runs-on: self-hosted
 
     steps:
+      # =============================
+      # Checkout repository
+      # =============================
       - name: 🛎️ Checkout repository
         uses: actions/checkout@v3
 
+      # =============================
+      # Setup Node.js
+      # =============================
       - name: 🔧 Setup Node.js
         uses: actions/setup-node@v3
         with:
@@ -26,45 +32,50 @@ jobs:
         run: |
           BRANCH=${GITHUB_REF##*/}
           echo "Detected branch: $BRANCH"
+
           if [ "$BRANCH" = "dev" ]; then
-            export FRONTEND_PATH="frontend-react"
-            export BACKEND_PATH="backend-node"
+            export FRONTEND_PATH="$GITHUB_WORKSPACE/frontend-react"
+            export BACKEND_PATH="$GITHUB_WORKSPACE/backend-node"
             export DEPLOY_DIR="/var/www/app-dev"
             export BACKEND_LOG="/var/www/backend-dev.log"
-            echo "DEV environment selected"
+            echo "✅ DEV environment selected (port 81)"
           elif [ "$BRANCH" = "main" ]; then
-            export FRONTEND_PATH="frontend-react"
-            export BACKEND_PATH="backend-node"
+            export FRONTEND_PATH="$GITHUB_WORKSPACE/frontend-react"
+            export BACKEND_PATH="$GITHUB_WORKSPACE/backend-node"
             export DEPLOY_DIR="/var/www/app-prod"
             export BACKEND_LOG="/var/www/backend-prod.log"
-            echo "PROD environment selected"
+            echo "✅ PROD environment selected (port 80)"
           else
-            echo "Branch not recognized, exiting..."
+            echo "❌ Branch not recognized, exiting..."
             exit 1
           fi
+
           echo "Frontend folder: $FRONTEND_PATH"
           echo "Backend folder: $BACKEND_PATH"
           echo "Deploy folder: $DEPLOY_DIR"
           echo "Backend log file: $BACKEND_LOG"
 
       # =============================
-      # Frontend: Install & Build
+      # Frontend: Install dependencies
       # =============================
       - name: 📦 Install frontend dependencies
         run: |
           echo "📂 Current directory: $(pwd)"
           echo "➡️ Installing frontend dependencies..."
           cd $FRONTEND_PATH || exit
-          echo "📂 Now in: $(pwd)"
+          echo "📂 Now in frontend folder: $(pwd)"
           npm install
           echo "✅ Frontend dependencies installed"
 
+      # =============================
+      # Frontend: Build
+      # =============================
       - name: 🏗️ Build frontend
         run: |
           echo "➡️ Building frontend..."
           cd $FRONTEND_PATH || exit
           npm run build
-          echo "✅ Frontend build done. Dist folder contents:"
+          echo "✅ Frontend build completed. Dist folder contents:"
           ls -lah dist
 
       # =============================
@@ -78,10 +89,10 @@ jobs:
           echo "✅ Frontend deployed to $DEPLOY_DIR"
           echo "➡️ Reloading Nginx..."
           sudo systemctl reload nginx
-          echo "✅ Nginx reloaded"
+          echo "✅ Nginx reloaded successfully"
 
       # =============================
-      # Backend: Optional Deployment
+      # Backend: Deploy & Start
       # =============================
       - name: 🚀 Deploy backend
         run: |
@@ -92,5 +103,4 @@ jobs:
           npm install
           echo "➡️ Starting backend..."
           nohup npm start > $BACKEND_LOG 2>&1 &
-          echo "✅ Backend started, logs: $BACKEND_LOG"
-
+          echo "✅ Backend started. Logs: $BACKEND_LOG"
