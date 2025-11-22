@@ -1,4 +1,4 @@
-name: Full CI/CD
+name: Frontend-dev
 
 on:
   push:
