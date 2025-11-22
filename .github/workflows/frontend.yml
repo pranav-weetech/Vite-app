@@ -1,49 +1,40 @@
-name: Frontend CI/CD
+name: Frontend CI/CD — DEV
 
 on:
   push:
     branches:
       - dev
-      - main
     paths:
-      - 'frontend-react/**'   # trigger only if frontend files change
+      - 'frontend-react/**'      # Only run if frontend changed
+      - '.github/workflows/frontend-dev.yml'
 
 jobs:
-  deploy:
+  frontend-dev-deploy:
     runs-on: self-hosted
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: 🛎️ Checkout code
+        uses: actions/checkout@v3
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v3
         with:
           node-version: 18
 
-      - name: Install dependencies
-        working-directory: frontend-react
-        run: npm ci
+      # Install dependencies
+      - name: 📦 Install frontend deps
+        working-directory: ./frontend-react
+        run: npm install
 
-      - name: Build project
-        working-directory: frontend-react
+      # Build
+      - name: 🏗️ Build frontend
+        working-directory: ./frontend-react
         run: npm run build
 
-      - name: Deploy to DEV
-        if: github.ref == 'refs/heads/dev'
+      # Deploy to /var/www/app-dev
+      - name: 🚀 Deploy to DEV
         run: |
-          echo "Deploying DEV..."
           sudo rm -rf /var/www/app-dev/*
           sudo cp -r frontend-react/dist/* /var/www/app-dev/
-
-      - name: Deploy to PROD
-        if: github.ref == 'refs/heads/main'
-        run: |
-          echo "Deploying PROD..."
-          sudo rm -rf /var/www/app-prod/*
-          sudo cp -r frontend-react/dist/* /var/www/app-prod/
-
-      - name: Restart nginx
-        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/main'
-        run: |
-          sudo systemctl restart nginx
+          sudo systemctl reload nginx
+          echo "🚀 DEV frontend deployed successfully!"
