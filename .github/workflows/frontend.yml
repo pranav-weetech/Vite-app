@@ -1,83 +1,25 @@
-name: Frontend-dev
+name: Frontend CI/CD — Dev
 
 on:
   push:
     branches:
       - dev
-      - main
+    paths:
+      - 'frontend-react/**'
 
 jobs:
-  deploy:
+  build-deploy-dev:
     runs-on: self-hosted
-
     steps:
-      - name: 🛎️ Checkout repository
-        uses: actions/checkout@v3
-
-      - name: 🔧 Setup Node.js
-        uses: actions/setup-node@v3
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: 18
-
-      # ==================================
-      # Detect branch + set environment
-      # ==================================
-      - name: ⚙️ Set environment paths
-        run: |
-          BRANCH=$GITHUB_REF_NAME
-          echo "Detected branch: $BRANCH"
-
-          echo "FRONTEND_PATH=$GITHUB_WORKSPACE/frontend-react" >> $GITHUB_ENV
-          echo "BACKEND_PATH=$GITHUB_WORKSPACE/backend-node" >> $GITHUB_ENV
-
-          if [ "$BRANCH" = "dev" ]; then
-            echo "DEPLOY_DIR=/var/www/app-dev" >> $GITHUB_ENV
-            echo "BACKEND_SERVICE=backend-dev.service" >> $GITHUB_ENV
-          elif [ "$BRANCH" = "main" ]; then
-            echo "DEPLOY_DIR=/var/www/app-prod" >> $GITHUB_ENV
-            echo "BACKEND_SERVICE=backend-prod.service" >> $GITHUB_ENV
-          else
-            echo "Unknown branch: $BRANCH"
-            exit 1
-          fi
-
-          echo "Environment set."
-          echo "FRONTEND_PATH=$FRONTEND_PATH"
-          echo "BACKEND_PATH=$BACKEND_PATH"
-          echo "DEPLOY_DIR=$DEPLOY_DIR"
-          echo "BACKEND_SERVICE=$BACKEND_SERVICE"
-
-      # ==================================
-      # Frontend build
-      # ==================================
-      - name: 📦 Frontend install
-        run: |
-          echo "Installing dependencies in: $FRONTEND_PATH"
-          cd $FRONTEND_PATH
+      - run: |
+          cd frontend-react
           npm install
-
-      - name: 🏗️ Build frontend
-        run: |
-          echo "Building frontend..."
-          cd $FRONTEND_PATH
           npm run build
-
-      - name: 🚀 Deploy frontend
-        run: |
-          echo "Deploying build to $DEPLOY_DIR"
-          sudo rm -rf $DEPLOY_DIR/*
-          sudo cp -r $FRONTEND_PATH/dist/* $DEPLOY_DIR/
-
-          # 🔥 SAFE NGINX RELOAD (won't break pipeline)
-          sudo systemctl reload nginx || echo "Nginx is not running — skipping reload."
-
-          sudo ls -lah $DEPLOY_DIR
-
-      # ==================================
-      # Backend restart
-      # ==================================
-      - name: 🚀 Restart backend service
-        run: |
-          echo "Restarting backend systemd service: $BACKEND_SERVICE"
-          sudo systemctl restart $BACKEND_SERVICE
-          sudo systemctl status $BACKEND_SERVICE --no-pager
+      - run: |
+          sudo rm -rf /var/www/app-dev/*
+          sudo cp -r frontend-react/dist/* /var/www/app-dev/
+          sudo systemctl reload nginx || echo "Nginx not running"
