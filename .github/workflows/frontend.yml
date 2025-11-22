@@ -1,14 +1,14 @@
-name: Frontend CI/CD — Prod
+name: Frontend CI/CD — Dev
 
 on:
   push:
     branches:
-      - main
+      - dev
     paths:
       - 'frontend-react/**'
 
 jobs:
-  build-deploy-prod:
+  build-deploy-dev:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v3
@@ -20,6 +20,6 @@ jobs:
           npm install
           npm run build
       - run: |
-          sudo rm -rf /var/www/app-prod/*
-          sudo cp -r frontend-react/dist/* /var/www/app-prod/
-          sudo systemctl reload nginx
+          sudo rm -rf /var/www/app-dev/*
+          sudo cp -r frontend-react/dist/* /var/www/app-dev/
+          sudo systemctl reload nginx || echo "Nginx not running"

@@ -6,9 +6,13 @@ import {
   completeTodo,
   createTodo,
   deleteTodo,
-  editTodo,       // ✅ this exists
-  fetchTodos,     // ✅ this exists
-} from "./redux/taskSlice";  // ❌ no editTask import here
+  editTodo,
+  fetchTodos,
+} from "./redux/taskSlice";
+
+// Branch-aware
+const isDev = import.meta.env.VITE_NODE_ENV === "development";
+const apiBase = import.meta.env.VITE_API_BASE;
 
 const App = () => {
   const dispatch = useDispatch();
@@ -31,9 +35,7 @@ const App = () => {
 
   const handleEdit = (id, index) => {
     setEditIndex(id);
-    if (index > -1) {
-      setEditedTodo(task[index].task);
-    }
+    if (index > -1) setEditedTodo(task[index].task);
   };
 
   const handleSaveEdit = () => {
@@ -91,8 +93,19 @@ const App = () => {
           <div className="app-logo">📋</div>
           <h1 className="app-title">TaskFlow Pro</h1>
 
+          <h1 className="app-title">DEV TaskFlow Pro</h1>
+          {isDev && (
+            <span
+              className="dev-badge"
+              style={{ color: "orange", marginLeft: "10px", fontWeight: "bold" }}
+            >
+              DEV
+            </span>
+          )}
+>>>>>>> dev
         </header>
 
+        {/* Input section */}
         <section className="input-section">
           <div className="input-card">
             <div className="input-form">
@@ -125,6 +138,7 @@ const App = () => {
           </div>
         </section>
 
+        {/* Stats */}
         {totalTasks > 0 && (
           <section className="stats-section">
             <div className="stats-card">
@@ -151,13 +165,14 @@ const App = () => {
                   <div
                     className="progress-bar"
                     style={{ width: `${completionPercentage}%` }}
-                  ></div>
+                  />
                 </div>
               </div>
             </div>
           </section>
         )}
 
+        {/* Task list */}
         <section className="task-list-section">
           <TaskList
             items={Array.isArray(task) ? task : []}
