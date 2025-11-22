@@ -89,7 +89,7 @@ const App = () => {
       <div className="main-content">
         <header className="app-header">
           <div className="app-logo">📋</div>
-          <h1 className="app-title">DEv TaskFlow Pro</h1>
+          <h1 className="app-title">prod TaskFlow Pro</h1>
         </header>
 
         <section className="input-section">
