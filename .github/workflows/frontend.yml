@@ -11,93 +11,52 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      # =============================
-      # Checkout repository
-      # =============================
       - name: 🛎️ Checkout repository
         uses: actions/checkout@v3
 
-      # =============================
-      # Setup Node.js
-      # =============================
       - name: 🔧 Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18
 
-      # =============================
-      # Detect branch and set paths
-      # =============================
+      # Set paths
       - name: ⚙️ Set environment paths
         run: |
           BRANCH=${GITHUB_REF##*/}
-          echo "Detected branch: $BRANCH"
+          echo "Branch: $BRANCH"
+
+          echo "FRONTEND_PATH=$GITHUB_WORKSPACE/frontend-react" >> $GITHUB_ENV
+          echo "BACKEND_PATH=$GITHUB_WORKSPACE/backend-node" >> $GITHUB_ENV
 
           if [ "$BRANCH" = "dev" ]; then
-            echo "DEV environment selected (port 81)"
-            echo "FRONTEND_PATH=$GITHUB_WORKSPACE/frontend-react" >> $GITHUB_ENV
-            echo "BACKEND_PATH=$GITHUB_WORKSPACE/backend-node" >> $GITHUB_ENV
             echo "DEPLOY_DIR=/var/www/app-dev" >> $GITHUB_ENV
-            echo "BACKEND_LOG=/var/www/backend-dev.log" >> $GITHUB_ENV
+            echo "BACKEND_SERVICE=backend-dev.service" >> $GITHUB_ENV
           elif [ "$BRANCH" = "main" ]; then
-            echo "PROD environment selected (port 80)"
-            echo "FRONTEND_PATH=$GITHUB_WORKSPACE/frontend-react" >> $GITHUB_ENV
-            echo "BACKEND_PATH=$GITHUB_WORKSPACE/backend-node" >> $GITHUB_ENV
             echo "DEPLOY_DIR=/var/www/app-prod" >> $GITHUB_ENV
-            echo "BACKEND_LOG=/var/www/backend-prod.log" >> $GITHUB_ENV
-          else
-            echo "❌ Branch not recognized, exiting..."
-            exit 1
+            echo "BACKEND_SERVICE=backend-prod.service" >> $GITHUB_ENV
           fi
 
-          echo "✅ Environment variables set for later steps"
-
-      # =============================
-      # Frontend: Install dependencies
-      # =============================
-      - name: 📦 Install frontend dependencies
+      # Frontend
+      - name: 📦 Frontend install
         run: |
-          echo "📂 Current directory: $(pwd)"
-          echo "➡️ Installing frontend dependencies..."
-          cd $FRONTEND_PATH || exit
-          echo "📂 Now in frontend folder: $(pwd)"
+          cd $FRONTEND_PATH
           npm install
-          echo "✅ Frontend dependencies installed"
 
-      # =============================
-      # Frontend: Build
-      # =============================
       - name: 🏗️ Build frontend
         run: |
-          echo "➡️ Building frontend..."
-          cd $FRONTEND_PATH || exit
+          cd $FRONTEND_PATH
           npm run build
-          echo "✅ Frontend build completed. Dist folder contents:"
-          ls -lah dist
 
-      # =============================
-      # Deploy Frontend
-      # =============================
       - name: 🚀 Deploy frontend
         run: |
-          echo "➡️ Deploying frontend to $DEPLOY_DIR..."
           sudo rm -rf $DEPLOY_DIR/*
           sudo cp -r $FRONTEND_PATH/dist/* $DEPLOY_DIR/
-          echo "✅ Frontend deployed to $DEPLOY_DIR"
-          echo "➡️ Reloading Nginx..."
           sudo systemctl reload nginx
-          echo "✅ Nginx reloaded successfully"
+          sudo ls -lah $DEPLOY_DIR
 
-      # =============================
-      # Backend: Deploy & Start
-      # =============================
-      - name: 🚀 Deploy backend
+      # Backend
+      - name: 🚀 Restart backend service
         run: |
-          echo "➡️ Deploying backend from $BACKEND_PATH..."
-          sudo fuser -k 5000/tcp 2>/dev/null || echo "No process running on 5000"
-          cd $BACKEND_PATH || exit
-          echo "📂 Now in backend folder: $(pwd)"
-          npm install
-          echo "➡️ Starting backend..."
-          nohup npm start > $BACKEND_LOG 2>&1 &
-          echo "✅ Backend started. Logs: $BACKEND_LOG"
+          echo "Restarting backend systemd service: $BACKEND_SERVICE"
+          sudo systemctl restart $BACKEND_SERVICE
+          sudo systemctl status $BACKEND_SERVICE --no-pager
