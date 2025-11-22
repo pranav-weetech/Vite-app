@@ -1,40 +1,25 @@
-name: Frontend CI/CD — PROD
+name: Frontend CI/CD — Prod
 
 on:
   push:
     branches:
       - main
     paths:
-      - 'frontend-react/**'      # Only run if frontend changed
-      - '.github/workflows/frontend-prod.yml'
+      - 'frontend-react/**'
 
 jobs:
-  frontend-prod-deploy:
+  build-deploy-prod:
     runs-on: self-hosted
-
     steps:
-      - name: 🛎️ Checkout code
-        uses: actions/checkout@v3
-
-      - name: 🔧 Setup Node.js
-        uses: actions/setup-node@v3
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: 18
-
-      # Install dependencies
-      - name: 📦 Install frontend deps
-        working-directory: ./frontend-react
-        run: npm install
-
-      # Build
-      - name: 🏗️ Build frontend
-        working-directory: ./frontend-react
-        run: npm run build
-
-      # Deploy to /var/www/app-prod
-      - name: 🚀 Deploy to PROD
-        run: |
+      - run: |
+          cd frontend-react
+          npm install
+          npm run build
+      - run: |
           sudo rm -rf /var/www/app-prod/*
           sudo cp -r frontend-react/dist/* /var/www/app-prod/
           sudo systemctl reload nginx
-          echo "🚀 PROD frontend deployed successfully!"
