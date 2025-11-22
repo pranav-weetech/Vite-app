@@ -1,17 +1,27 @@
+<<<<<<< HEAD
 name: Backend-dev
+=======
+name: Backend CI/CD — Dev & Prod
+>>>>>>> dev
 
 on:
   push:
     branches:
       - dev
       - main
+<<<<<<< HEAD
+=======
+    paths:
+      - 'backend-node/**'          # Only run if backend changes
+      - '.github/workflows/backend.yml'
+>>>>>>> dev
 
 jobs:
   deploy:
     runs-on: self-hosted
 
     steps:
-      - name: 🛎️ Checkout repository
+      - name: 🛎 Checkout repo
         uses: actions/checkout@v3
 
       - name: 🔧 Setup Node.js
@@ -19,6 +29,7 @@ jobs:
         with:
           node-version: 18
 
+<<<<<<< HEAD
       # ==================================
       # Detect branch + set environment
       # ==================================
@@ -26,6 +37,15 @@ jobs:
         run: |
           BRANCH=$GITHUB_REF_NAME
           echo "Detected branch: $BRANCH"
+=======
+      # =========================
+      # Set branch-specific paths
+      # =========================
+      - name: ⚙️ Set branch environment
+        run: |
+          BRANCH=$GITHUB_REF_NAME
+          echo "Branch detected: $BRANCH"
+>>>>>>> dev
 
           echo "BACKEND_PATH=$GITHUB_WORKSPACE/backend-node" >> $GITHUB_ENV
 
@@ -38,6 +58,7 @@ jobs:
             exit 1
           fi
 
+<<<<<<< HEAD
           echo "Environment set."
           echo "BACKEND_PATH=$BACKEND_PATH"
           echo "BACKEND_SERVICE=$BACKEND_SERVICE"
@@ -61,3 +82,21 @@ jobs:
           sudo systemctl start $BACKEND_SERVICE
           sudo systemctl status $BACKEND_SERVICE --no-pager
 
+=======
+      # =========================
+      # Install backend dependencies
+      # =========================
+      - name: 📦 Install backend dependencies
+        run: |
+          cd $BACKEND_PATH
+          npm install
+
+      # =========================
+      # Restart backend service
+      # =========================
+      - name: 🚀 Restart backend service
+        run: |
+          echo "Restarting $BACKEND_SERVICE"
+          sudo systemctl restart $BACKEND_SERVICE
+          sudo systemctl status $BACKEND_SERVICE --no-pager
+>>>>>>> dev
