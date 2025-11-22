@@ -1,20 +1,18 @@
-name: Backend CI/CD — Dev & Prod
+name: Backend CI/CD — Dev
 
 on:
   push:
     branches:
       - dev
-      - main
     paths:
-      - 'backend-node/**'          # Only run if backend changes
-      - '.github/workflows/backend.yml'
+      - 'backend-node/**'
 
 jobs:
-  backend-deploy:
+  backend-dev-deploy:
     runs-on: self-hosted
 
     steps:
-      - name: 🛎 Checkout repo
+      - name: 🛎 Checkout code
         uses: actions/checkout@v3
 
       - name: 🔧 Setup Node.js
@@ -22,38 +20,12 @@ jobs:
         with:
           node-version: 18
 
-      # =========================
-      # Set branch-specific paths
-      # =========================
-      - name: ⚙️ Set branch environment
-        run: |
-          BRANCH=$GITHUB_REF_NAME
-          echo "Branch detected: $BRANCH"
-
-          echo "BACKEND_PATH=$GITHUB_WORKSPACE/backend-node" >> $GITHUB_ENV
-
-          if [ "$BRANCH" = "dev" ]; then
-            echo "BACKEND_SERVICE=backend-dev.service" >> $GITHUB_ENV
-          elif [ "$BRANCH" = "main" ]; then
-            echo "BACKEND_SERVICE=backend-prod.service" >> $GITHUB_ENV
-          else
-            echo "Unknown branch: $BRANCH"
-            exit 1
-          fi
-
-      # =========================
-      # Install backend dependencies
-      # =========================
       - name: 📦 Install backend dependencies
         run: |
-          cd $BACKEND_PATH
+          cd backend-node
           npm install
 
-      # =========================
-      # Restart backend service
-      # =========================
-      - name: 🚀 Restart backend service
+      - name: 🚀 Restart backend dev service
         run: |
-          echo "Restarting $BACKEND_SERVICE"
-          sudo systemctl restart $BACKEND_SERVICE
-          sudo systemctl status $BACKEND_SERVICE --no-pager
+          sudo systemctl restart backend-dev.service
+          sudo systemctl status backend-dev.service --no-pager
