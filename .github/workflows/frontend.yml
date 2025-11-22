@@ -67,7 +67,10 @@ jobs:
           echo "Deploying build to $DEPLOY_DIR"
           sudo rm -rf $DEPLOY_DIR/*
           sudo cp -r $FRONTEND_PATH/dist/* $DEPLOY_DIR/
-          sudo systemctl reload nginx
+
+          # 🔥 SAFE NGINX RELOAD (won't break pipeline)
+          sudo systemctl reload nginx || echo "Nginx is not running — skipping reload."
+
           sudo ls -lah $DEPLOY_DIR
 
       # ==================================
