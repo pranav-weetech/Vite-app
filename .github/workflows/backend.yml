@@ -1,17 +1,20 @@
-name: Backend-dev
+name: Backend CI/CD — Dev & Prod
 
 on:
   push:
     branches:
       - dev
       - main
+    paths:
+      - 'backend-node/**'          # Only run if backend changes
+      - '.github/workflows/backend.yml'
 
 jobs:
-  deploy:
+  backend-deploy:
     runs-on: self-hosted
 
     steps:
-      - name: 🛎️ Checkout repository
+      - name: 🛎 Checkout repo
         uses: actions/checkout@v3
 
       - name: 🔧 Setup Node.js
@@ -19,13 +22,13 @@ jobs:
         with:
           node-version: 18
 
-      # ==================================
-      # Detect branch + set environment
-      # ==================================
-      - name: ⚙️ Set environment paths
+      # =========================
+      # Set branch-specific paths
+      # =========================
+      - name: ⚙️ Set branch environment
         run: |
           BRANCH=$GITHUB_REF_NAME
-          echo "Detected branch: $BRANCH"
+          echo "Branch detected: $BRANCH"
 
           echo "BACKEND_PATH=$GITHUB_WORKSPACE/backend-node" >> $GITHUB_ENV
 
@@ -38,26 +41,19 @@ jobs:
             exit 1
           fi
 
-          echo "Environment set."
-          echo "BACKEND_PATH=$BACKEND_PATH"
-          echo "BACKEND_SERVICE=$BACKEND_SERVICE"
-
-      # ==================================
-      # Backend build (install only)
-      # ==================================
+      # =========================
+      # Install backend dependencies
+      # =========================
       - name: 📦 Install backend dependencies
         run: |
-          echo "Installing backend dependencies..."
           cd $BACKEND_PATH
           npm install
 
-      # ==================================
-      # Restart backend
-      # ==================================
+      # =========================
+      # Restart backend service
+      # =========================
       - name: 🚀 Restart backend service
         run: |
-          echo "Restarting backend systemd service: $BACKEND_SERVICE"
-          sudo systemctl stop $BACKEND_SERVICE || true
-          sudo systemctl start $BACKEND_SERVICE
+          echo "Restarting $BACKEND_SERVICE"
+          sudo systemctl restart $BACKEND_SERVICE
           sudo systemctl status $BACKEND_SERVICE --no-pager
-
