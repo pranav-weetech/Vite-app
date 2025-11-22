@@ -1,0 +1,31 @@
+name: Backend CI/CD — Prod
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend-node/**'
+
+jobs:
+  backend-prod-deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: 🛎 Checkout code
+        uses: actions/checkout@v3
+
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: 📦 Install backend dependencies
+        run: |
+          cd backend-node
+          npm install
+
+      - name: 🚀 Restart backend prod service
+        run: |
+          sudo systemctl restart backend-prod.service
+          sudo systemctl status backend-prod.service --no-pager
