@@ -1,13 +1,18 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 name: Backend-dev
 =======
 name: Backend CI/CD — Dev & Prod
+>>>>>>> dev
+=======
+name: Backend CI/CD — Dev
 >>>>>>> dev
 
 on:
   push:
     branches:
       - dev
+<<<<<<< HEAD
       - main
 <<<<<<< HEAD
 =======
@@ -18,10 +23,17 @@ on:
 
 jobs:
   deploy:
+=======
+    paths:
+      - 'backend-node/**'
+
+jobs:
+  backend-dev-deploy:
+>>>>>>> dev
     runs-on: self-hosted
 
     steps:
-      - name: 🛎 Checkout repo
+      - name: 🛎 Checkout code
         uses: actions/checkout@v3
 
       - name: 🔧 Setup Node.js
@@ -29,6 +41,7 @@ jobs:
         with:
           node-version: 18
 
+<<<<<<< HEAD
 <<<<<<< HEAD
       # ==================================
       # Detect branch + set environment
@@ -86,17 +99,21 @@ jobs:
       # =========================
       # Install backend dependencies
       # =========================
+=======
+>>>>>>> dev
       - name: 📦 Install backend dependencies
         run: |
-          cd $BACKEND_PATH
+          cd backend-node
           npm install
 
-      # =========================
-      # Restart backend service
-      # =========================
-      - name: 🚀 Restart backend service
+      - name: 🚀 Restart backend dev service
         run: |
+<<<<<<< HEAD
           echo "Restarting $BACKEND_SERVICE"
           sudo systemctl restart $BACKEND_SERVICE
           sudo systemctl status $BACKEND_SERVICE --no-pager
+>>>>>>> dev
+=======
+          sudo systemctl restart backend-dev.service
+          sudo systemctl status backend-dev.service --no-pager
 >>>>>>> dev
