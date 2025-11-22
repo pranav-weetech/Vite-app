@@ -1,15 +1,13 @@
-name: Backend CI/CD
+name: Backend-dev
 
 on:
   push:
     branches:
       - dev
       - main
-    paths:
-      - 'backend-node/**'    # Only trigger if backend files change
 
 jobs:
-  backend-deploy:
+  deploy:
     runs-on: self-hosted
 
     steps:
@@ -21,30 +19,45 @@ jobs:
         with:
           node-version: 18
 
+      # ==================================
+      # Detect branch + set environment
+      # ==================================
+      - name: ⚙️ Set environment paths
+        run: |
+          BRANCH=$GITHUB_REF_NAME
+          echo "Detected branch: $BRANCH"
+
+          echo "BACKEND_PATH=$GITHUB_WORKSPACE/backend-node" >> $GITHUB_ENV
+
+          if [ "$BRANCH" = "dev" ]; then
+            echo "BACKEND_SERVICE=backend-dev.service" >> $GITHUB_ENV
+          elif [ "$BRANCH" = "main" ]; then
+            echo "BACKEND_SERVICE=backend-prod.service" >> $GITHUB_ENV
+          else
+            echo "Unknown branch: $BRANCH"
+            exit 1
+          fi
+
+          echo "Environment set."
+          echo "BACKEND_PATH=$BACKEND_PATH"
+          echo "BACKEND_SERVICE=$BACKEND_SERVICE"
+
+      # ==================================
+      # Backend build (install only)
+      # ==================================
       - name: 📦 Install backend dependencies
-        working-directory: ./backend-node
-        run: npm install
-
-      # ==============================
-      # DEV BACKEND DEPLOYMENT (PORT 5000 PROXY → NGINX 81)
-      # ==============================
-      - name: 🚀 Restart Backend (DEV)
-        if: github.ref == 'refs/heads/dev'
         run: |
-          echo "Restarting backend for DEV..."
-          pkill node || true
-          nohup node /home/ubuntu/Vite-app/backend-node/index.js > /home/ubuntu/backend-dev.log 2>&1 &
-          sudo nginx -s reload || sudo systemctl restart nginx
-          echo "DEV backend restarted!"
+          echo "Installing backend dependencies..."
+          cd $BACKEND_PATH
+          npm install
 
-      # ==============================
-      # PROD BACKEND DEPLOYMENT (PORT 5000 PROXY → NGINX 80)
-      # ==============================
-      - name: 🚀 Restart Backend (PROD)
-        if: github.ref == 'refs/heads/main'
+      # ==================================
+      # Restart backend
+      # ==================================
+      - name: 🚀 Restart backend service
         run: |
-          echo "Restarting backend for PROD..."
-          pkill node || true
-          nohup node /home/ubuntu/Vite-app/backend-node/index.js > /home/ubuntu/backend-prod.log 2>&1 &
-          sudo nginx -s reload || sudo systemctl restart nginx
-          echo "PROD backend restarted!"
+          echo "Restarting backend systemd service: $BACKEND_SERVICE"
+          sudo systemctl stop $BACKEND_SERVICE || true
+          sudo systemctl start $BACKEND_SERVICE
+          sudo systemctl status $BACKEND_SERVICE --no-pager
+
