@@ -91,8 +91,6 @@ const App = () => {
       <div className="main-content">
         <header className="app-header">
           <div className="app-logo">📋</div>
-          <h1 className="app-title">TaskFlow Pro</h1>
-
           <h1 className="app-title">DEV TaskFlow Pro</h1>
           {isDev && (
             <span
@@ -101,8 +99,7 @@ const App = () => {
             >
               DEV
             </span>
-          )}
->>>>>>> dev
+          )}dev
         </header>
 
         {/* Input section */}
