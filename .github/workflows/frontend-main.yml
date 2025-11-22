@@ -1,15 +1,15 @@
-name: Frontend CI/CD — DEV
+name: Frontend CI/CD — PROD
 
 on:
   push:
     branches:
-      - dev
+      - main
     paths:
       - 'frontend-react/**'      # Only run if frontend changed
-      - '.github/workflows/frontend-dev.yml'
+      - '.github/workflows/frontend-prod.yml'
 
 jobs:
-  frontend-dev-deploy:
+  frontend-prod-deploy:
     runs-on: self-hosted
 
     steps:
@@ -31,11 +31,10 @@ jobs:
         working-directory: ./frontend-react
         run: npm run build
 
-      # Deploy to /var/www/app-dev
-      - name: 🚀 Deploy to DEV
+      # Deploy to /var/www/app-prod
+      - name: 🚀 Deploy to PROD
         run: |
-          sudo rm -rf /var/www/app-dev/*
-          sudo cp -r frontend-react/dist/* /var/www/app-dev/
+          sudo rm -rf /var/www/app-prod/*
+          sudo cp -r frontend-react/dist/* /var/www/app-prod/
           sudo systemctl reload nginx
-          echo "🚀 DEV frontend deployed successfully!"
-
+          echo "🚀 PROD frontend deployed successfully!"
