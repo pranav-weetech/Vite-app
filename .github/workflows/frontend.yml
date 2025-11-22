@@ -19,11 +19,13 @@ jobs:
         with:
           node-version: 18
 
-      # Set paths
+      # ==================================
+      # Detect branch + set environment
+      # ==================================
       - name: ⚙️ Set environment paths
         run: |
-          BRANCH=${GITHUB_REF##*/}
-          echo "Branch: $BRANCH"
+          BRANCH=$GITHUB_REF_NAME
+          echo "Detected branch: $BRANCH"
 
           echo "FRONTEND_PATH=$GITHUB_WORKSPACE/frontend-react" >> $GITHUB_ENV
           echo "BACKEND_PATH=$GITHUB_WORKSPACE/backend-node" >> $GITHUB_ENV
@@ -34,27 +36,43 @@ jobs:
           elif [ "$BRANCH" = "main" ]; then
             echo "DEPLOY_DIR=/var/www/app-prod" >> $GITHUB_ENV
             echo "BACKEND_SERVICE=backend-prod.service" >> $GITHUB_ENV
+          else
+            echo "Unknown branch: $BRANCH"
+            exit 1
           fi
 
-      # Frontend
+          echo "Environment set."
+          echo "FRONTEND_PATH=$FRONTEND_PATH"
+          echo "BACKEND_PATH=$BACKEND_PATH"
+          echo "DEPLOY_DIR=$DEPLOY_DIR"
+          echo "BACKEND_SERVICE=$BACKEND_SERVICE"
+
+      # ==================================
+      # Frontend build
+      # ==================================
       - name: 📦 Frontend install
         run: |
+          echo "Installing dependencies in: $FRONTEND_PATH"
           cd $FRONTEND_PATH
           npm install
 
       - name: 🏗️ Build frontend
         run: |
+          echo "Building frontend..."
           cd $FRONTEND_PATH
           npm run build
 
       - name: 🚀 Deploy frontend
         run: |
+          echo "Deploying build to $DEPLOY_DIR"
           sudo rm -rf $DEPLOY_DIR/*
           sudo cp -r $FRONTEND_PATH/dist/* $DEPLOY_DIR/
           sudo systemctl reload nginx
           sudo ls -lah $DEPLOY_DIR
 
-      # Backend
+      # ==================================
+      # Backend restart
+      # ==================================
       - name: 🚀 Restart backend service
         run: |
           echo "Restarting backend systemd service: $BACKEND_SERVICE"
