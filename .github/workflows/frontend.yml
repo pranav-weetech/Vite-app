@@ -1,0 +1,55 @@
+name: Frontend CI/CD
+
+on:
+  push:
+    branches:
+      - dev
+      - main
+
+jobs:
+  frontend-deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: 🛎️ Checkout repository
+        uses: actions/checkout@v3
+
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      # ==========================
+      # FRONTEND BUILD
+      # ==========================
+      - name: 📦 Install frontend dependencies
+        working-directory: ./Vite-app/frontend-react
+        run: npm install
+
+      - name: 🏗️ Build frontend
+        working-directory: ./Vite-app/frontend-react
+        run: npm run build
+
+      # ==========================
+      # DEV FRONTEND DEPLOY (PORT 81)
+      # ==========================
+      - name: 🚀 Deploy DEV frontend
+        if: github.ref == 'refs/heads/dev'
+        run: |
+          echo "Deploying frontend to DEV (port 81)"
+          sudo rm -rf /var/www/app-dev/*
+          sudo cp -r Vite-app/frontend-react/dist/* /var/www/app-dev/
+          sudo nginx -s reload || sudo systemctl restart nginx
+          echo "DEV frontend deployed!"
+
+      # ==========================
+      # PROD FRONTEND DEPLOY (PORT 80)
+      # ==========================
+      - name: 🚀 Deploy PROD frontend
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "Deploying frontend to PROD (port 80)"
+          sudo rm -rf /var/www/app-prod/*
+          sudo cp -r Vite-app/frontend-react/dist/* /var/www/app-prod/
+          sudo nginx -s reload || sudo systemctl restart nginx
+          echo "PROD frontend deployed!"
