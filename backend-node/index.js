@@ -54,7 +54,7 @@ app.use(
 // 📦 Routes
 // ===============================================
 app.get("/", (req, res) => {
-  res.send("BACKEND-----✅");
+  res.send("BACKEND✅");
 });
 
 app.use("/api/todo", todoRoutes);
