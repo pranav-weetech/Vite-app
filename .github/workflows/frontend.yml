@@ -5,6 +5,10 @@ on:
     branches:
       - dev
       - main
+    paths:
+      - 'frontend-react/**'   # Only run when frontend folder changes
+      - '!backend-node/**'    # Ignore backend folder
+      - '!.github/workflows/backend.yml' # Ignore backend workflow changes
 
 jobs:
   frontend-deploy:
