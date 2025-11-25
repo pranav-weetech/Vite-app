@@ -23,11 +23,11 @@ jobs:
       # FRONTEND BUILD
       # ==========================
       - name: 📦 Install frontend dependencies
-        working-directory: ./Vite-app/frontend-react
+        working-directory: ./frontend-react
         run: npm install
 
       - name: 🏗️ Build frontend
-        working-directory: ./Vite-app/frontend-react
+        working-directory: ./frontend-react
         run: npm run build
 
       # ==========================
@@ -38,7 +38,7 @@ jobs:
         run: |
           echo "Deploying frontend to DEV (port 81)"
           sudo rm -rf /var/www/app-dev/*
-          sudo cp -r Vite-app/frontend-react/dist/* /var/www/app-dev/
+          sudo cp -r frontend-react/dist/* /var/www/app-dev/
           sudo nginx -s reload || sudo systemctl restart nginx
           echo "DEV frontend deployed!"
 
@@ -50,6 +50,6 @@ jobs:
         run: |
           echo "Deploying frontend to PROD (port 80)"
           sudo rm -rf /var/www/app-prod/*
-          sudo cp -r Vite-app/frontend-react/dist/* /var/www/app-prod/
+          sudo cp -r frontend-react/dist/* /var/www/app-prod/
           sudo nginx -s reload || sudo systemctl restart nginx
           echo "PROD frontend deployed!"
