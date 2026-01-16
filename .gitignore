@@ -1,0 +1,27 @@
+# Node
+node_modules/
+npm-debug.log
+yarn.lock
+
+# Env files
+.env
+.env.*
+
+# Build output
+dist/
+build/
+
+# Docker
+*.log
+
+# Kubernetes local state
+.kube/
+.minikube/
+
+# OS / Editor
+.DS_Store
+.vscode/
+.idea/
+
+# Misc
+coverage/
